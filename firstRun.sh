@@ -30,10 +30,7 @@ then
   DATABASE_PASSWORD=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 15)
 fi
 
-echo "user is $DATABASE_USERNAME"
-echo "pass is $DATABASE_PASSWORD"
-echo "DATABASE_NAME is ${PROJECT_NAME}"
-
+# WRITE VARIABLES TO .ENV FILE
 SECRET_KEY=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 50)
 {
   echo "DATABASE_HOST=${PROJECT_NAME}-db"
@@ -44,6 +41,7 @@ SECRET_KEY=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 50)
   echo "DJANGO_SECRET_KEY=${SECRET_KEY}"
 } >> .env
 
+# RENAME PROJECT DIRECTORY
 if [ "$PROJECT_NAME" != "djangodocker" ]; then
   mv djangodocker "$PROJECT_NAME"
 fi
@@ -52,10 +50,9 @@ echo "===== STARTING DOCKER ====="
 docker compose up -d --build
 
 echo "===== MIGRATING DATABASE ====="
-echo "Running: docker exec -ti ${PROJECT_NAME}-api ./manage.py migrate"
 docker exec -ti "${PROJECT_NAME}-api" ./manage.py migrate
 
-echo "===== CREATE SUPERUSER ====="
+echo "===== CREATING SUPERUSER ====="
 docker exec -ti "${PROJECT_NAME}-api" ./manage.py createsuperuser
 
 echo "Success! Go to http://localhost:8000 to see API documentation."
