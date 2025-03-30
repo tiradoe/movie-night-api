@@ -39,7 +39,9 @@ SECRET_KEY=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 50)
   echo "DJANGO_SECRET_KEY=${SECRET_KEY}"
 } >> .env
 
-mv djangodocker "$PROJECT_NAME"
+if [ "$PROJECT_NAME" != "djangodocker" ]; then
+  mv djangodocker "$PROJECT_NAME"
+fi
 
 echo "===== STARTING DOCKER ====="
 docker compose up -d --build
