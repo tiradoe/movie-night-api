@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:17
+    container_name: djangodocker-db
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USERNAME}
@@ -11,6 +12,12 @@ services:
       - "5432:5432"
     volumes:
       - djangodocker_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "$DATABASE_NAME"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
 
   api:
     build: .
@@ -19,7 +26,8 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY}
       DEBUG: ${DEBUG}

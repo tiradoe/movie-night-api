@@ -30,8 +30,13 @@ then
   DATABASE_PASSWORD=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 15)
 fi
 
+echo "user is $DATABASE_USERNAME"
+echo "pass is $DATABASE_PASSWORD"
+echo "DATABASE_NAME is ${PROJECT_NAME}"
+
 SECRET_KEY=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 50)
 {
+  echo "DATABASE_HOST=${PROJECT_NAME}-db"
   echo "DATABASE_NAME=${PROJECT_NAME}"
   echo "DATABASE_USERNAME=${DATABASE_USERNAME}"
   echo "DATABASE_PASSWORD=${DATABASE_PASSWORD}"
@@ -47,9 +52,10 @@ echo "===== STARTING DOCKER ====="
 docker compose up -d --build
 
 echo "===== MIGRATING DATABASE ====="
-docker exec -ti "${PROJECT_NAME}-api"  ./manage.py migrate
+echo "Running: docker exec -ti ${PROJECT_NAME}-api ./manage.py migrate"
+docker exec -ti "${PROJECT_NAME}-api" ./manage.py migrate
 
 echo "===== CREATE SUPERUSER ====="
-docker exec -ti "${PROJECT_NAME}-api"  ./manage.py createsuperuser
+docker exec -ti "${PROJECT_NAME}-api" ./manage.py createsuperuser
 
 echo "Success! Go to http://localhost:8000 to see API documentation."
