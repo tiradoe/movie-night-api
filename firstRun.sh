@@ -55,6 +55,9 @@ docker exec -ti "${PROJECT_NAME}-api" ./manage.py migrate
 echo "===== CREATING SUPERUSER ====="
 docker exec -ti "${PROJECT_NAME}-api" ./manage.py createsuperuser
 
+echo "===== COLLECTING STATIC FILES ====="
+docker exec -ti "${PROJECT_NAME}-api" ./manage.py collectstatic
+
 echo "Success! Go to http://localhost:8000 to see API documentation."
 
 git remote remove origin
