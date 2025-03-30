@@ -56,3 +56,5 @@ echo "===== CREATING SUPERUSER ====="
 docker exec -ti "${PROJECT_NAME}-api" ./manage.py createsuperuser
 
 echo "Success! Go to http://localhost:8000 to see API documentation."
+
+git remote remove origin
