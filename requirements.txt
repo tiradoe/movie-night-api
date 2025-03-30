@@ -1,0 +1,7 @@
+django==5.1.4
+djangorestframework
+django-rest-knox
+markdown
+django-filter
+gunicorn==23.0.0
+psycopg2-binary==2.9.10
