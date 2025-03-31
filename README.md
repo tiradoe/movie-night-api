@@ -11,7 +11,7 @@ Dependencies
 How to use
 =
 1. Clone the project and enter the project directory
-   1. `git clone https://edbuildsthings.com/tiradoe/django-docker-template.git`
+   1. `git clone https://edbuildsthings.com/tiradoe/django-docker-template.git your_project_name`
    2. `cd django-docker-template`
 2. Run the setup script
    1. `./firstRun.sh` and enter information when prompted
