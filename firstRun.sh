@@ -5,16 +5,16 @@ set -e
 read -p "What is the project's name? " -r PROJECT_NAME
 if [ -z "$PROJECT_NAME" ]
 then
-  PROJECT_NAME="djangodocker"
+  PROJECT_NAME="movienight"
 fi
 
 echo "===== UPDATING PROJECT NAME ====="
-git ls-files | xargs sed -i "s/djangodocker/${PROJECT_NAME}/g"
+git ls-files | xargs sed -i "s/movienight/${PROJECT_NAME}/g"
 echo "Done!"
 
 echo "===== UPDATING ENVIRONMENT ====="
 cp .env.example .env
-sed -i "s/djangodocker/${PROJECT_NAME}/g" ./.env
+sed -i "s/movienight/${PROJECT_NAME}/g" ./.env
 
 # SET DATABASE USERNAME
 read -p "Enter a username for the database: " -r DATABASE_USERNAME
@@ -42,8 +42,8 @@ SECRET_KEY=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 50)
 } >> .env
 
 # RENAME PROJECT DIRECTORY
-if [ "$PROJECT_NAME" != "djangodocker" ]; then
-  mv djangodocker "$PROJECT_NAME"
+if [ "$PROJECT_NAME" != "movienight" ]; then
+  mv movienight "$PROJECT_NAME"
 fi
 
 echo "===== STARTING DOCKER ====="

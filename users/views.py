@@ -3,7 +3,6 @@ from django.contrib.auth.models import Group, User, AnonymousUser
 from rest_framework import permissions, viewsets, status
 from knox.auth import TokenAuthentication
 from knox.views import LoginView as KnoxLoginView
-from rest_framework.authentication import BasicAuthentication
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view

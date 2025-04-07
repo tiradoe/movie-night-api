@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:17
-    container_name: djangodocker-db
+    container_name: movienight-db
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USERNAME}
@@ -11,7 +11,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - djangodocker_data:/var/lib/postgresql/data
+      - movienight_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready", "-d", "$DATABASE_NAME"]
       interval: 30s
@@ -22,7 +22,7 @@ services:
   api:
     build: .
     user: ${UID}:${GID}
-    container_name: djangodocker-api
+    container_name: movienight-api
     ports:
       - "8000:8000"
     depends_on:
@@ -48,4 +48,4 @@ services:
       - /etc/group:/etc/group:ro
 
 volumes:
-  djangodocker_data:
+  movienight_data:
