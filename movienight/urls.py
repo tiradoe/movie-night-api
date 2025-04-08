@@ -19,6 +19,8 @@ router.register(r"api/users", user_views.UserViewSet)
 router.register(r"api/groups", user_views.GroupViewSet)
 router.register(r"api/movies", movie_views.MovieViewset)
 router.register(r"api/lists", movie_views.MovieListViewset)
+router.register(r"api/schedules", movie_views.ScheduleViewset)
+router.register(r"api/showings", movie_views.ShowingViewset)
 
 urlpatterns = [
     path("", include(router.urls)),

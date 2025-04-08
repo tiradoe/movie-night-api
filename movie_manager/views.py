@@ -1,17 +1,18 @@
-from django.http import HttpResponse, JsonResponse
+import datetime
+
+from django.http import JsonResponse
 from django.contrib.auth.models import User
 from rest_framework import permissions, viewsets
 from knox.auth import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 
-from movie_manager.models import Movie, MovieList
-from movie_manager.serializers import MovieListSerializer, MovieSerializer
+from movie_manager.models import Movie, MovieList, Schedule, Showing
+from movie_manager.serializers import MovieListSerializer, MovieSerializer, ScheduleSerializer, ShowingSerializer
 
 
 # Create your views here.
 class MovieViewset(viewsets.ModelViewSet):
-    fields = '__all__'
     queryset = Movie.objects.all().order_by("title")
     authentication_classes = [TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -19,7 +20,6 @@ class MovieViewset(viewsets.ModelViewSet):
     serializer_class = MovieSerializer
 
 class MovieListViewset(viewsets.ModelViewSet):
-    fields = '__all__'
     queryset = MovieList.objects.all().order_by("name")
     authentication_classes = [TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated]
@@ -66,8 +66,73 @@ class MovieListViewset(viewsets.ModelViewSet):
         return JsonResponse(MovieListSerializer(movie_list).data)
 
     def remove_movie(self, request, pk=None, movie_id=None, *args, **kwargs):
-        movie_list = MovieList.objects.get(pk=pk)
         movie = Movie.objects.get(pk=movie_id)
+
+        movie_list = MovieList.objects.get(pk=pk)
         movie_list.movies.remove(movie)
 
         return JsonResponse(MovieListSerializer(movie_list).data)
+
+class ScheduleViewset(viewsets.ModelViewSet):
+    queryset = Schedule.objects.all().order_by("name")
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    serializer_class = ScheduleSerializer
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        # Get the schedule instance
+        instance = self.get_object()
+        today = datetime.datetime.now()
+
+        upcoming_showings = instance.showings.filter(showtime__gte=today)
+
+        # Create a serialized response
+        serializer = self.get_serializer(instance)
+        data = serializer.data
+
+        # Replace all showings with only future showings
+        data['showings'] = ShowingSerializer(upcoming_showings, many=True).data
+
+
+        if request.GET.get('past_showings') == 'true':
+            past_showings = instance.showings.filter(showtime__lt=today)
+
+            # Add both to the response
+            data['past_showings'] = [
+                {'id': showing.id, 'showtime': showing.showtime.isoformat(), "movie": MovieSerializer(showing.movie).data}
+                for showing in past_showings
+            ]
+        else:
+            data['past_showings'] = []
+
+        return JsonResponse(data)
+
+
+class ShowingViewset(viewsets.ModelViewSet):
+    queryset = Showing.objects.all().order_by("showtime")
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [permissions.IsAuthenticated]
+
+    serializer_class = ShowingSerializer
+
+    def create(self, request, *args, **kwargs):
+        movie_id = request.data.get('movie')
+        movie = Movie.objects.get(pk=movie_id)
+
+        schedule_id = request.data.get('schedule')
+        schedule = Schedule.objects.get(pk=schedule_id)
+
+        showing = Showing.objects.create(
+            movie=movie,
+            schedule=schedule,
+            showtime=request.data.get("showtime"),
+            public=request.data.get("public"),
+            owner=User.objects.get(pk=request.data.get("owner"))
+        )
+
+        schedule.showings.add(showing)
+
+        return JsonResponse(ShowingSerializer(showing).data)
+
+
