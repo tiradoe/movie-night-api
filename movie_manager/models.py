@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-# Create your models here.
 class Movie(models.Model):
     title = models.CharField(max_length=100)
     imdb_id = models.CharField(max_length=100)
@@ -12,7 +11,7 @@ class Movie(models.Model):
     actors = models.CharField(max_length=500)
     plot = models.CharField(max_length=500)
     poster = models.CharField(max_length=500)
-    last_watched = models.DateTimeField()
+    last_watched = models.DateTimeField(null=True, blank=True)
     added_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -39,3 +38,25 @@ class MovieList(models.Model):
 
     def __str__(self):
         return self.name
+
+class Schedule(models.Model):
+    name = models.CharField(max_length=100)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    public = models.BooleanField(default=False)
+    showings = models.ManyToManyField("Showing")
+    slug = models.SlugField(max_length=100, default="")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+class Showing(models.Model):
+    movie = models.ForeignKey(Movie, on_delete=models.CASCADE)
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+    public = models.BooleanField(default=False)
+    showtime = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["showtime"]
