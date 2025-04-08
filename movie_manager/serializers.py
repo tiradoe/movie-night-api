@@ -11,10 +11,11 @@ class MovieSerializer(serializers.ModelSerializer):
 
 class MovieListSerializer(serializers.ModelSerializer):
     movie_count = serializers.SerializerMethodField()
+    movies = MovieSerializer(read_only=True, many=True)
 
     class Meta:
         model = MovieList
-        fields = ["id","name","owner","public", "movie_count"]
+        fields = ["id","name","owner","public", "movies", "movie_count"]
 
 
     def get_movie_count(self, obj):

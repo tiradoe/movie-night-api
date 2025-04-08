@@ -2,6 +2,7 @@ from django.http import HttpResponse, JsonResponse
 from django.contrib.auth.models import User
 from rest_framework import permissions, viewsets
 from knox.auth import TokenAuthentication
+from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound
 
 from movie_manager.models import Movie, MovieList
@@ -25,6 +26,12 @@ class MovieListViewset(viewsets.ModelViewSet):
 
     serializer_class = MovieListSerializer
 
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        movie_list = MovieList.objects.get(pk=pk)
+        return JsonResponse(MovieListSerializer(movie_list).data)
+
+
     def update(self, request, pk=None, *args, **kwargs):
         movie_list = MovieList.objects.get(pk=pk)
         movie_list.name = request.data.get('name')
@@ -44,5 +51,23 @@ class MovieListViewset(viewsets.ModelViewSet):
                 removed_movie.delete()
 
         movie_list.save()
+
+        return JsonResponse(MovieListSerializer(movie_list).data)
+
+    @action(detail=True, methods=['put', 'delete'], url_path='movie/(?P<movie_id>[0-9]+)')
+    def add_movie(self, request, pk=None, movie_id=None, *args, **kwargs):
+        if request.method == 'DELETE':
+            return self.remove_movie(request, pk, movie_id)
+
+        movie_list = MovieList.objects.get(pk=pk)
+        movie = Movie.objects.get(pk=movie_id)
+        movie_list.movies.add(movie)
+
+        return JsonResponse(MovieListSerializer(movie_list).data)
+
+    def remove_movie(self, request, pk=None, movie_id=None, *args, **kwargs):
+        movie_list = MovieList.objects.get(pk=pk)
+        movie = Movie.objects.get(pk=movie_id)
+        movie_list.movies.remove(movie)
 
         return JsonResponse(MovieListSerializer(movie_list).data)

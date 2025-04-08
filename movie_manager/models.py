@@ -3,9 +3,6 @@ from django.contrib.auth.models import User
 
 # Create your models here.
 class Movie(models.Model):
-    class Meta:
-        ordering = ["title"]
-
     title = models.CharField(max_length=100)
     imdb_id = models.CharField(max_length=100)
     year = models.IntegerField()
@@ -16,18 +13,19 @@ class Movie(models.Model):
     plot = models.CharField(max_length=500)
     poster = models.CharField(max_length=500)
     last_watched = models.DateTimeField()
+    added_by = models.ForeignKey(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["title"]
 
     def __str__(self):
         return self.title
 
 
 class MovieList(models.Model):
-    class Meta:
-        ordering = ["name"]
-
     name = models.CharField(max_length=100)
     public = models.BooleanField(default=False)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -35,6 +33,9 @@ class MovieList(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["name"]
 
     def __str__(self):
         return self.name
