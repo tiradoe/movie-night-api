@@ -1,11 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Movie(models.Model):
     title = models.CharField(max_length=100)
     imdb_id = models.CharField(max_length=100)
     year = models.IntegerField()
-    critic_score = models.CharField(max_length=500)
+    critic_score = models.CharField(max_length=500, null=True, blank=True)
     genre = models.CharField(max_length=100)
     director = models.CharField(max_length=500)
     actors = models.CharField(max_length=500)
@@ -39,6 +40,7 @@ class MovieList(models.Model):
     def __str__(self):
         return self.name
 
+
 class Schedule(models.Model):
     name = models.CharField(max_length=100)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -48,6 +50,7 @@ class Schedule(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
+
 
 class Showing(models.Model):
     movie = models.ForeignKey(Movie, on_delete=models.CASCADE)

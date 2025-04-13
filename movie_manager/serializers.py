@@ -6,7 +6,7 @@ from movie_manager.models import Movie, MovieList, Schedule, Showing
 class MovieSerializer(serializers.ModelSerializer):
     class Meta:
         model = Movie
-        fields = '__all__'
+        fields = "__all__"
 
 
 class MovieListSerializer(serializers.ModelSerializer):
@@ -15,11 +15,11 @@ class MovieListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = MovieList
-        fields = ["id","name","owner","public", "movies", "movie_count"]
-
+        fields = ["id", "name", "owner", "public", "movies", "movie_count"]
 
     def get_movie_count(self, obj):
         return len(obj.movies.all())
+
 
 class UserSerializer(serializers.Serializer):
     class Meta:
@@ -41,5 +41,4 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Schedule
-        fields = ["name", "owner","public","slug", "showings"]
-
+        fields = ["name", "owner", "public", "slug", "showings"]
