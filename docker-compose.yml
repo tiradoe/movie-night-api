@@ -5,15 +5,18 @@ services:
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USERNAME}
+      PGUSER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
     env_file:
       - .env
     ports:
       - "5432:5432"
+    user: postgres
     volumes:
       - movienight_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready", "-d", "$DATABASE_NAME"]
+      test: ["CMD-SHELL", "pg_isready -U $DATABASE_USERNAME"]
       interval: 30s
       timeout: 60s
       retries: 5
@@ -40,6 +43,7 @@ services:
       DATABASE_PASSWORD: ${DATABASE_PASSWORD}
       DATABASE_HOST: ${DATABASE_HOST}
       DATABASE_PORT: ${DATABASE_PORT}
+      OMDB_API_KEY: ${OMDB_API_KEY}
     env_file:
       - .env
     volumes:

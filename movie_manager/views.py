@@ -1,14 +1,27 @@
 import datetime
+import json
 
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from rest_framework import permissions, viewsets
 from knox.auth import TokenAuthentication
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view
 from rest_framework.exceptions import NotFound
+from rest_framework.permissions import AllowAny, SAFE_METHODS
 
+from movie_db.db_providers.omdb import OMDb
 from movie_manager.models import Movie, MovieList, Schedule, Showing
-from movie_manager.serializers import MovieListSerializer, MovieSerializer, ScheduleSerializer, ShowingSerializer
+from movie_manager.serializers import (
+    MovieListSerializer,
+    MovieSerializer,
+    ScheduleSerializer,
+    ShowingSerializer,
+)
+
+
+class ReadOnly(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS
 
 
 # Create your views here.
@@ -19,26 +32,25 @@ class MovieViewset(viewsets.ModelViewSet):
 
     serializer_class = MovieSerializer
 
+
 class MovieListViewset(viewsets.ModelViewSet):
     queryset = MovieList.objects.all().order_by("name")
     authentication_classes = [TokenAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated | ReadOnly]
 
     serializer_class = MovieListSerializer
-
 
     def retrieve(self, request, pk=None, *args, **kwargs):
         movie_list = MovieList.objects.get(pk=pk)
         return JsonResponse(MovieListSerializer(movie_list).data)
 
-
     def update(self, request, pk=None, *args, **kwargs):
         movie_list = MovieList.objects.get(pk=pk)
-        movie_list.name = request.data.get('name')
+        movie_list.name = request.data.get("name")
         movie_list.owner = User.objects.get(pk=request.data.get("owner"))
 
-        if request.data.get('movies'):
-            movie_ids = request.data.get('movies')
+        if request.data.get("movies"):
+            movie_ids = request.data.get("movies")
             for movie_id in movie_ids:
                 try:
                     movie = Movie.objects.get(pk=movie_id)
@@ -54,14 +66,33 @@ class MovieListViewset(viewsets.ModelViewSet):
 
         return JsonResponse(MovieListSerializer(movie_list).data)
 
-    @action(detail=True, methods=['put', 'delete'], url_path='movie/(?P<movie_id>[0-9]+)')
-    def add_movie(self, request, pk=None, movie_id=None, *args, **kwargs):
-        if request.method == 'DELETE':
-            return self.remove_movie(request, pk, movie_id)
+    @action(
+        detail=True, methods=["put", "delete"], url_path="movie/(?P<imdb_id>tt[0-9]+)"
+    )
+    def add_movie(self, request, pk=None, imdb_id=None, *args, **kwargs):
+        if request.method == "DELETE":
+            return self.remove_movie(request, pk, imdb_id)
 
         movie_list = MovieList.objects.get(pk=pk)
-        movie = Movie.objects.get(pk=movie_id)
-        movie_list.movies.add(movie)
+        try:
+            new_movie = Movie.objects.get(imdb_id=imdb_id)
+        except Movie.DoesNotExist:
+            omdb = OMDb()
+            movie = omdb.search(imdb_id, {"type": "imdb_id"})
+
+            new_movie = Movie.objects.create(
+                title=movie["title"],
+                year=movie["year"],
+                imdb_id=movie["imdb_id"],
+                poster=movie["poster"],
+                plot=movie["plot"],
+                genre=movie["genre"],
+                critic_score=movie["imdb_rating"],
+                director=movie["director"],
+                added_by_id=request.user.id,
+            )
+
+            movie_list.movies.add(new_movie)
 
         return JsonResponse(MovieListSerializer(movie_list).data)
 
@@ -72,6 +103,7 @@ class MovieListViewset(viewsets.ModelViewSet):
         movie_list.movies.remove(movie)
 
         return JsonResponse(MovieListSerializer(movie_list).data)
+
 
 class ScheduleViewset(viewsets.ModelViewSet):
     queryset = Schedule.objects.all().order_by("name")
@@ -92,19 +124,22 @@ class ScheduleViewset(viewsets.ModelViewSet):
         data = serializer.data
 
         # Replace all showings with only future showings
-        data['showings'] = ShowingSerializer(upcoming_showings, many=True).data
+        data["showings"] = ShowingSerializer(upcoming_showings, many=True).data
 
-
-        if request.GET.get('past_showings') == 'true':
+        if request.GET.get("past_showings") == "true":
             past_showings = instance.showings.filter(showtime__lt=today)
 
             # Add both to the response
-            data['past_showings'] = [
-                {'id': showing.id, 'showtime': showing.showtime.isoformat(), "movie": MovieSerializer(showing.movie).data}
+            data["past_showings"] = [
+                {
+                    "id": showing.id,
+                    "showtime": showing.showtime.isoformat(),
+                    "movie": MovieSerializer(showing.movie).data,
+                }
                 for showing in past_showings
             ]
         else:
-            data['past_showings'] = []
+            data["past_showings"] = []
 
         return JsonResponse(data)
 
@@ -117,10 +152,10 @@ class ShowingViewset(viewsets.ModelViewSet):
     serializer_class = ShowingSerializer
 
     def create(self, request, *args, **kwargs):
-        movie_id = request.data.get('movie')
+        movie_id = request.data.get("movie")
         movie = Movie.objects.get(pk=movie_id)
 
-        schedule_id = request.data.get('schedule')
+        schedule_id = request.data.get("schedule")
         schedule = Schedule.objects.get(pk=schedule_id)
 
         showing = Showing.objects.create(
@@ -128,11 +163,9 @@ class ShowingViewset(viewsets.ModelViewSet):
             schedule=schedule,
             showtime=request.data.get("showtime"),
             public=request.data.get("public"),
-            owner=User.objects.get(pk=request.data.get("owner"))
+            owner=User.objects.get(pk=request.data.get("owner")),
         )
 
         schedule.showings.add(showing)
 
         return JsonResponse(ShowingSerializer(showing).data)
-
-

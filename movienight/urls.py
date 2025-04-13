@@ -12,6 +12,7 @@ from rest_framework.routers import DefaultRouter
 
 from users import views as user_views
 from movie_manager import views as movie_views
+from movie_db import views as movie_db_views
 from rest_framework.authtoken.views import obtain_auth_token
 
 router = DefaultRouter()
@@ -28,5 +29,6 @@ urlpatterns = [
     path(r"api/auth/token/", obtain_auth_token),
     path(r"api/auth/login/", user_views.LoginView.as_view(), name="knox_login"),
     path(r"api/auth/register/", user_views.register, name="register"),
+    path(r"api/movies/search", movie_db_views.omdb_search, name="omdb_search"),
     path(r"api/auth/", include("knox.urls")),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
