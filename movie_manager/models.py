@@ -1,19 +1,20 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import SET_NULL
 
 
 class Movie(models.Model):
     title = models.CharField(max_length=100)
     imdb_id = models.CharField(max_length=100)
-    year = models.IntegerField()
-    critic_score = models.CharField(max_length=500, null=True, blank=True)
-    genre = models.CharField(max_length=100)
-    director = models.CharField(max_length=500)
-    actors = models.CharField(max_length=500)
-    plot = models.CharField(max_length=500)
-    poster = models.CharField(max_length=500)
-    last_watched = models.DateTimeField(null=True, blank=True)
-    added_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    year = models.IntegerField(null=True, blank=True)
+    director = models.CharField(max_length=500, null=True, blank=True)
+    actors = models.CharField(max_length=500, null=True, blank=True)
+    plot = models.CharField(max_length=500, null=True, blank=True)
+    genre = models.CharField(max_length=100, null=True, blank=True)
+    mpaa_rating = models.CharField(max_length=20, null=True, blank=True)
+    critic_scores = models.CharField(max_length=500, null=True, blank=True)
+    poster = models.CharField(max_length=500, null=True, blank=True)
+    added_by = models.ForeignKey(User, on_delete=SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
@@ -45,7 +46,7 @@ class Schedule(models.Model):
     name = models.CharField(max_length=100)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     public = models.BooleanField(default=False)
-    showings = models.ManyToManyField("Showing")
+    showings = models.ManyToManyField("Showing", blank=True)
     slug = models.SlugField(max_length=100, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
