@@ -1,3 +1,4 @@
+from django.utils import timezone
 from gunicorn.config import User
 from rest_framework import serializers
 from movie_manager.models import Movie, MovieList, Schedule, Showing
@@ -32,12 +33,22 @@ class ShowingSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Showing
-        fields = ["public", "showtime", "movie", "owner"]
+        fields = ["id", "public", "showtime", "movie", "owner"]
+
+    def to_internal_value(self, data):
+        validated_data = super().to_internal_value(data)
+
+        if "showtime" in validated_data and timezone.is_naive(
+            validated_data["showtime"]
+        ):
+            validated_data["showtime"] = timezone.make_aware(validated_data["showtime"])
+
+        return validated_data
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
     name = serializers.CharField(read_only=True)
-    showings = ShowingSerializer(read_only=True, many=True)
+    showings = ShowingSerializer(source="showing_set", read_only=True, many=True)
 
     class Meta:
         model = Schedule

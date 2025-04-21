@@ -3,6 +3,7 @@ import json
 
 from django.http import JsonResponse
 from django.contrib.auth.models import User
+from django.utils.dateparse import parse_datetime
 from rest_framework import permissions, viewsets
 from knox.auth import TokenAuthentication
 from rest_framework.decorators import action, api_view
@@ -39,6 +40,14 @@ class MovieListViewset(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated | ReadOnly]
 
     serializer_class = MovieListSerializer
+
+    def create(self, request, *args, **kwargs):
+        movie_list = MovieList.objects.create(
+            name=request.data.get("name"),
+            owner=request.user,
+        )
+
+        return JsonResponse(MovieListSerializer(movie_list).data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
         movie_list = MovieList.objects.get(pk=pk)
@@ -82,22 +91,24 @@ class MovieListViewset(viewsets.ModelViewSet):
 
             new_movie = Movie.objects.create(
                 title=movie["title"],
+                actors=movie["actors"],
                 year=movie["year"],
                 imdb_id=movie["imdb_id"],
                 poster=movie["poster"],
                 plot=movie["plot"],
                 genre=movie["genre"],
-                critic_score=movie["imdb_rating"],
+                critic_scores=movie["critic_scores"],
+                mpaa_rating=movie["mpaa_rating"],
                 director=movie["director"],
                 added_by_id=request.user.id,
             )
 
-            movie_list.movies.add(new_movie)
+        movie_list.movies.add(new_movie)
 
         return JsonResponse(MovieListSerializer(movie_list).data)
 
-    def remove_movie(self, request, pk=None, movie_id=None, *args, **kwargs):
-        movie = Movie.objects.get(pk=movie_id)
+    def remove_movie(self, request, pk=None, imdb_id=None, *args, **kwargs):
+        movie = Movie.objects.filter(imdb_id=imdb_id).first()
 
         movie_list = MovieList.objects.get(pk=pk)
         movie_list.movies.remove(movie)
@@ -117,7 +128,9 @@ class ScheduleViewset(viewsets.ModelViewSet):
         instance = self.get_object()
         today = datetime.datetime.now()
 
-        upcoming_showings = instance.showings.filter(showtime__gte=today)
+        upcoming_showings = Showing.objects.filter(
+            showtime__gte=today, schedule=instance
+        )
 
         # Create a serialized response
         serializer = self.get_serializer(instance)
@@ -127,7 +140,9 @@ class ScheduleViewset(viewsets.ModelViewSet):
         data["showings"] = ShowingSerializer(upcoming_showings, many=True).data
 
         if request.GET.get("past_showings") == "true":
-            past_showings = instance.showings.filter(showtime__lt=today)
+            past_showings = Showing.objects.filter(
+                showtime__lt=today, schedule=instance
+            )
 
             # Add both to the response
             data["past_showings"] = [
@@ -158,14 +173,15 @@ class ShowingViewset(viewsets.ModelViewSet):
         schedule_id = request.data.get("schedule")
         schedule = Schedule.objects.get(pk=schedule_id)
 
+        showtime_str = request.data.get("showtime")
+        showtime = parse_datetime(showtime_str)
+
         showing = Showing.objects.create(
             movie=movie,
             schedule=schedule,
-            showtime=request.data.get("showtime"),
+            showtime=showtime,
             public=request.data.get("public"),
-            owner=User.objects.get(pk=request.data.get("owner")),
+            owner=request.user,
         )
-
-        schedule.showings.add(showing)
 
         return JsonResponse(ShowingSerializer(showing).data)

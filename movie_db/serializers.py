@@ -2,10 +2,12 @@ from rest_framework import serializers
 
 
 class MovieSerializer(serializers.Serializer):
+    actors = serializers.CharField(source="Actors")
     director = serializers.CharField(source="Director")
     genre = serializers.CharField(source="Genre")
     imdb_id = serializers.CharField(source="imdbID")
-    imdb_rating = serializers.CharField(source="imdbRating")
+    critic_scores = serializers.CharField(source="Ratings")
+    mpaa_rating = serializers.CharField(source="Rated")
     media_type = serializers.CharField(source="Type")
     plot = serializers.CharField(source="Plot")
     poster = serializers.CharField(source="Poster")
