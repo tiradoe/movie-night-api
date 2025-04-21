@@ -48,7 +48,7 @@ class ShowingSerializer(serializers.ModelSerializer):
 
 class ScheduleSerializer(serializers.ModelSerializer):
     name = serializers.CharField(read_only=True)
-    showings = ShowingSerializer(read_only=True, many=True)
+    showings = ShowingSerializer(source="showing_set", read_only=True, many=True)
 
     class Meta:
         model = Schedule

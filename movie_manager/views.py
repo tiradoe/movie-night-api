@@ -91,6 +91,7 @@ class MovieListViewset(viewsets.ModelViewSet):
 
             new_movie = Movie.objects.create(
                 title=movie["title"],
+                actors=movie["actors"],
                 year=movie["year"],
                 imdb_id=movie["imdb_id"],
                 poster=movie["poster"],
@@ -127,7 +128,9 @@ class ScheduleViewset(viewsets.ModelViewSet):
         instance = self.get_object()
         today = datetime.datetime.now()
 
-        upcoming_showings = instance.showings.filter(showtime__gte=today)
+        upcoming_showings = Showing.objects.filter(
+            showtime__gte=today, schedule=instance
+        )
 
         # Create a serialized response
         serializer = self.get_serializer(instance)
@@ -137,7 +140,9 @@ class ScheduleViewset(viewsets.ModelViewSet):
         data["showings"] = ShowingSerializer(upcoming_showings, many=True).data
 
         if request.GET.get("past_showings") == "true":
-            past_showings = instance.showings.filter(showtime__lt=today)
+            past_showings = Showing.objects.filter(
+                showtime__lt=today, schedule=instance
+            )
 
             # Add both to the response
             data["past_showings"] = [
@@ -178,7 +183,5 @@ class ShowingViewset(viewsets.ModelViewSet):
             public=request.data.get("public"),
             owner=request.user,
         )
-
-        schedule.showings.add(showing)
 
         return JsonResponse(ShowingSerializer(showing).data)

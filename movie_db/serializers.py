@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 
 class MovieSerializer(serializers.Serializer):
+    actors = serializers.CharField(source="Actors")
     director = serializers.CharField(source="Director")
     genre = serializers.CharField(source="Genre")
     imdb_id = serializers.CharField(source="imdbID")
