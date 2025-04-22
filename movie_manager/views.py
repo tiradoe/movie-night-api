@@ -49,10 +49,6 @@ class MovieListViewset(viewsets.ModelViewSet):
 
         return JsonResponse(MovieListSerializer(movie_list).data)
 
-    def retrieve(self, request, pk=None, *args, **kwargs):
-        movie_list = MovieList.objects.get(pk=pk)
-        return JsonResponse(MovieListSerializer(movie_list).data)
-
     def update(self, request, pk=None, *args, **kwargs):
         movie_list = MovieList.objects.get(pk=pk)
         movie_list.name = request.data.get("name")
@@ -119,7 +115,7 @@ class MovieListViewset(viewsets.ModelViewSet):
 class ScheduleViewset(viewsets.ModelViewSet):
     queryset = Schedule.objects.all().order_by("name")
     authentication_classes = [TokenAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated | ReadOnly]
 
     serializer_class = ScheduleSerializer
 
@@ -162,7 +158,7 @@ class ScheduleViewset(viewsets.ModelViewSet):
 class ShowingViewset(viewsets.ModelViewSet):
     queryset = Showing.objects.all().order_by("showtime")
     authentication_classes = [TokenAuthentication]
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated | ReadOnly]
 
     serializer_class = ShowingSerializer
 
