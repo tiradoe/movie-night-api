@@ -1,5 +1,7 @@
 import os
 
+from django.conf import settings
+
 from movie_db.movie_db import MovieDB
 import requests
 
@@ -8,8 +10,7 @@ from movie_db.serializers import MovieSerializer, MovieResultSerializer
 
 class OMDb(MovieDB):
     def __init__(self):
-        api_key = os.getenv("OMDB_API_KEY")
-        self.api_key = f"{api_key}"
+        self.api_key = settings.OMDB_API_KEY
         self.base_url = "https://www.omdbapi.com/?apikey=" + self.api_key
         super().__init__()
 
