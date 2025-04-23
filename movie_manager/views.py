@@ -33,6 +33,26 @@ class MovieViewset(viewsets.ModelViewSet):
 
     serializer_class = MovieSerializer
 
+    def update(self, request, pk=None, *args, **kwargs):
+        omdb = OMDb()
+        updated_movie = omdb.search(request.data.get("imdb_id"), {"type": "imdb_id"})
+
+        movie = Movie.objects.get(pk=pk)
+
+        movie.title = updated_movie["title"]
+        movie.actors = updated_movie["actors"]
+        movie.year = updated_movie["year"]
+        movie.critic_scores = updated_movie["critic_scores"]
+        movie.mpaa_rating = updated_movie["mpaa_rating"]
+        movie.director = updated_movie["director"]
+        movie.poster = updated_movie["poster"]
+        movie.plot = updated_movie["plot"]
+        movie.genre = updated_movie["genre"]
+
+        movie.save()
+
+        return JsonResponse(MovieSerializer(movie).data)
+
 
 class MovieListViewset(viewsets.ModelViewSet):
     queryset = MovieList.objects.all().order_by("name")
