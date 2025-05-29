@@ -142,7 +142,9 @@ class ScheduleViewset(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         # Get the schedule instance
         instance = self.get_object()
-        today = datetime.datetime.now()
+        now = datetime.datetime.now()
+        # get time from start of day
+        today = datetime.datetime(now.year, now.month, now.day)
 
         upcoming_showings = Showing.objects.filter(
             showtime__gte=today, schedule=instance
