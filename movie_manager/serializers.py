@@ -5,9 +5,28 @@ from movie_manager.models import Movie, MovieList, Schedule, Showing
 
 
 class MovieSerializer(serializers.ModelSerializer):
+    has_been_scheduled = serializers.SerializerMethodField()
+
     class Meta:
         model = Movie
-        fields = "__all__"
+        fields = [
+            "id",
+            "title",
+            "imdb_id",
+            "year",
+            "director",
+            "actors",
+            "plot",
+            "genre",
+            "mpaa_rating",
+            "critic_scores",
+            "poster",
+            "added_by_id",
+            "has_been_scheduled",
+        ]
+
+    def get_has_been_scheduled(self, obj):
+        return len(Showing.objects.filter(movie_id=obj.id).all()) > 0
 
 
 class MovieListSerializer(serializers.ModelSerializer):
