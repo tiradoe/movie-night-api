@@ -6,19 +6,19 @@ from movie_manager.models import Movie, MovieList, Schedule, Showing
 # Register your models here.
 @admin.register(Movie)
 class MovieAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["title", "imdb_id", "added_by"]
 
 
 @admin.register(MovieList)
 class MovieListAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["name", "owner"]
 
 
 @admin.register(Schedule)
 class ScheduleAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["name", "owner"]
 
 
 @admin.register(Showing)
 class ShowingAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["showtime", "movie"]
