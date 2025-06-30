@@ -1,9 +1,10 @@
 import datetime
-import json
 
+from django.db.models import QuerySet
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.utils.dateparse import parse_datetime
+from django.db import models
 from rest_framework import permissions, viewsets
 from knox.auth import TokenAuthentication
 from rest_framework.decorators import action, api_view
@@ -66,14 +67,29 @@ class MovieListViewset(viewsets.ModelViewSet):
             return MovieListSerializer
 
     def get_queryset(self):
+        base_qs = MovieList.objects.all()
+
         if self.action == "list":
-            return MovieList.objects.filter(owner=self.request.user)
+            if self.request.user.is_authenticated:
+                return base_qs.filter(
+                    models.Q(public=True) |
+                    models.Q(owner=self.request.user)
+                ).order_by("name")
+
+            return base_qs.filter(public=True).order_by("name")
         else:
             return MovieList.objects.prefetch_related(
                 "movies",
                 "movies__showing_set"
             ).order_by("name")
 
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+    def get_permissions(self):
+        if self.action in ['update', 'partial_update', 'destroy']:
+            self.permission_classes = [permissions.IsAuthenticated]
+        return super().get_permissions()
 
     def create(self, request, *args, **kwargs):
         movie_list = MovieList.objects.create(
