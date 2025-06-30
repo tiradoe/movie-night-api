@@ -42,6 +42,7 @@ class MovieListListSerializer(serializers.ModelSerializer):
 class MovieListSerializer(serializers.ModelSerializer):
     movies = MovieSerializer(read_only=True, many=True)
     serializer_class = MovieSerializer
+    owner = serializers.PrimaryKeyRelatedField(read_only=True)
 
     def get_queryset(self):
         return MovieList.objects.prefetch_related(
