@@ -3,7 +3,6 @@ from movie_db.db_providers.omdb import OMDb
 
 
 def omdb_search(request):
-    print("ENTERING MOVIE SEARCH")
     query = request.GET.get("q")
     if not query:
         return JsonResponse({"Error": "Missing query"}, status=400)
