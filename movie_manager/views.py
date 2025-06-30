@@ -55,7 +55,7 @@ class MovieViewset(viewsets.ModelViewSet):
 
 
 class MovieListViewset(viewsets.ModelViewSet):
-    queryset = MovieList.objects.all().order_by("name")
+    queryset = MovieList.objects.prefetch_related("movies").order_by("name")
     authentication_classes = [TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated | ReadOnly]
 
