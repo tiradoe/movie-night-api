@@ -26,19 +26,26 @@ class MovieSerializer(serializers.ModelSerializer):
         ]
 
     def get_has_been_scheduled(self, obj):
-        return len(Showing.objects.filter(movie_id=obj.id).all()) > 0
+        return Showing.objects.filter(movie_id=obj.id).exists()
 
 
 class MovieListSerializer(serializers.ModelSerializer):
     movie_count = serializers.SerializerMethodField()
     movies = MovieSerializer(read_only=True, many=True)
+    serializer_class = MovieSerializer
+
+    def get_queryset(self):
+        return MovieList.objects.prefetch_related(
+            "movies",
+            "movies__showing_set"
+        )
 
     class Meta:
         model = MovieList
         fields = ["id", "name", "owner", "public", "movies", "movie_count"]
 
     def get_movie_count(self, obj):
-        return len(obj.movies.all())
+        return obj.movies.count()
 
 
 class UserSerializer(serializers.Serializer):
