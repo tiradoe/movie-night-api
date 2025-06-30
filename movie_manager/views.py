@@ -16,7 +16,7 @@ from movie_manager.serializers import (
     MovieListSerializer,
     MovieSerializer,
     ScheduleSerializer,
-    ShowingSerializer,
+    ShowingSerializer, MovieListListSerializer,
 )
 
 
@@ -55,11 +55,25 @@ class MovieViewset(viewsets.ModelViewSet):
 
 
 class MovieListViewset(viewsets.ModelViewSet):
-    queryset = MovieList.objects.prefetch_related("movies").order_by("name")
+    queryset = MovieList.objects.all()
     authentication_classes = [TokenAuthentication]
     permission_classes = [permissions.IsAuthenticated | ReadOnly]
 
-    serializer_class = MovieListSerializer
+    def get_serializer_class(self):
+        if self.action == "list":
+            return MovieListListSerializer
+        else:
+            return MovieListSerializer
+
+    def get_queryset(self):
+        if self.action == "list":
+            return MovieList.objects.filter(owner=self.request.user)
+        else:
+            return MovieList.objects.prefetch_related(
+                "movies",
+                "movies__showing_set"
+            ).order_by("name")
+
 
     def create(self, request, *args, **kwargs):
         movie_list = MovieList.objects.create(
