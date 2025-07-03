@@ -1,4 +1,7 @@
+from zoneinfo import ZoneInfo
+
 from django.contrib import admin
+from django.utils import timezone
 
 from movie_manager.models import Movie, MovieList, Schedule, Showing
 
@@ -21,4 +24,15 @@ class ScheduleAdmin(admin.ModelAdmin):
 
 @admin.register(Showing)
 class ShowingAdmin(admin.ModelAdmin):
-    list_display = ["showtime", "movie"]
+    list_display = ["local_showtime", "movie"]
+
+    def local_showtime(self, obj):
+        if obj.showtime:
+            target_tz = ZoneInfo("America/Chicago")
+            with timezone.override(target_tz):
+                local_time = timezone.localtime(obj.showtime)
+                return local_time.strftime("%Y-%m-%d %H:%M")
+        return "Invalid datetime"
+
+    local_showtime.short_description = "Showtime (Local)"
+    local_showtime.admin_order_field = "showtime"

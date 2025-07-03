@@ -37,14 +37,15 @@ class ShowingViewsetTestCase(APITestCase):
         self.assertEqual(response_data.get("showtime"), showing_time)
         self.assertEqual(response_data.get("movie").get("title"), "Test Movie")
 
-    @freeze_time("2025-07-02 23:59:00", tz_offset=-5)
+    @freeze_time("2025-07-03 04:59:00")  # 2025-07-02 23:59 CDT in UTC
     def test_it_returns_active_showings(self):
         self.client.force_authenticate(user=self.schedule.owner)
 
         showtimes_america_chicago_utc = [
-            "2025-07-03T04:00:59.000Z",  # 7/2/25 11:59pm
-            "2025-07-01T04:00:59.000Z",  # 6/30/25 11:59pm
-            "2025-07-08T04:00:59.000Z",  # 7/7/25 11:59pm
+            "2025-07-08T04:59:59.000Z",  # 2025-07-07 11:59pm
+            "2025-07-03T04:59:59.000Z",  # 2025-07-02 11:59pm
+            "2025-07-03T04:00:00.000Z",  # 2025-07-02 11:00pm
+            "2025-07-01T04:59:00.000Z",  # 2025-06-30 11:59pm
         ]
 
         for showtime in showtimes_america_chicago_utc:
