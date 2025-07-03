@@ -24,7 +24,7 @@ class ScheduleAdmin(admin.ModelAdmin):
 
 @admin.register(Showing)
 class ShowingAdmin(admin.ModelAdmin):
-    list_display = ["local_showtime", "movie"]
+    list_display = ["local_showtime", "showtime", "movie"]
 
     def local_showtime(self, obj):
         if obj.showtime:
