@@ -1,3 +1,6 @@
-from django.test import TestCase
+from unittest import TestCase
 
-# Create your tests here.
+
+class OmdbTestCase(TestCase):
+    def test_movie_db(self):
+        self.assertTrue(True)
