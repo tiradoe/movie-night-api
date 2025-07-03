@@ -1,6 +1,6 @@
-from django.utils import timezone
 from gunicorn.config import User
 from rest_framework import serializers
+
 from movie_manager.models import Movie, MovieList, Schedule, Showing
 
 
@@ -28,6 +28,7 @@ class MovieSerializer(serializers.ModelSerializer):
     def get_has_been_scheduled(self, obj):
         return Showing.objects.filter(movie_id=obj.id).exists()
 
+
 class MovieListListSerializer(serializers.ModelSerializer):
     movie_count = serializers.SerializerMethodField()
 
@@ -45,15 +46,11 @@ class MovieListSerializer(serializers.ModelSerializer):
     owner = serializers.PrimaryKeyRelatedField(read_only=True)
 
     def get_queryset(self):
-        return MovieList.objects.prefetch_related(
-            "movies",
-            "movies__showing_set"
-        )
+        return MovieList.objects.prefetch_related("movies", "movies__showing_set")
 
     class Meta:
         model = MovieList
         fields = ["id", "name", "owner", "public", "movies"]
-
 
 
 class UserSerializer(serializers.Serializer):
@@ -69,19 +66,18 @@ class ShowingSerializer(serializers.ModelSerializer):
         model = Showing
         fields = ["id", "public", "showtime", "movie", "owner"]
 
-    def to_internal_value(self, data):
-        validated_data = super().to_internal_value(data)
+    # def to_internal_value(self, data):
+    #    validated_data = super().to_internal_value(data)
 
-        if "showtime" in validated_data and timezone.is_naive(
-            validated_data["showtime"]
-        ):
-            validated_data["showtime"] = timezone.make_aware(validated_data["showtime"])
+    #    if "showtime" in validated_data and timezone.is_naive(
+    #        validated_data["showtime"]
+    #    ):
+    #        validated_data["showtime"] = timezone.make_aware(validated_data["showtime"])
 
-        return validated_data
+    #    return validated_data
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(read_only=True)
     showings = ShowingSerializer(source="showing_set", read_only=True, many=True)
 
     class Meta:

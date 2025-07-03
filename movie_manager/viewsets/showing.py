@@ -33,4 +33,4 @@ class ShowingViewset(viewsets.ModelViewSet):
             owner=request.user,
         )
 
-        return JsonResponse(ShowingSerializer(showing).data)
+        return JsonResponse(ShowingSerializer(showing).data, status=201)
