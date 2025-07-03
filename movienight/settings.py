@@ -126,6 +126,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+OMDB_API_KEY = os.environ.get("OMDB_API_KEY")
+
 # Django Rest Framework
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [
