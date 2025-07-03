@@ -1,5 +1,3 @@
-import datetime
-
 from django.http import JsonResponse
 from django.utils import timezone
 from knox.auth import TokenAuthentication
@@ -25,12 +23,8 @@ class ScheduleViewset(viewsets.ModelViewSet):
         # Get the schedule instance
         instance = self.get_object()
         now = timezone.now()
-        # get time from start of day
-        today = timezone.make_aware(datetime.datetime(now.year, now.month, now.day))
 
-        upcoming_showings = Showing.objects.filter(
-            showtime__gte=today, schedule=instance
-        )
+        upcoming_showings = Showing.objects.filter(showtime__gte=now, schedule=instance)
 
         serializer = self.get_serializer(instance)
         data = serializer.data
@@ -39,18 +33,16 @@ class ScheduleViewset(viewsets.ModelViewSet):
         data["showings"] = ShowingSerializer(upcoming_showings, many=True).data
 
         if request.GET.get("past_showings") == "true":
-            past_showings = Showing.objects.filter(
-                showtime__lt=today, schedule=instance
-            )
+            past_showings = Showing.objects.filter(showtime__lt=now, schedule=instance)
 
             # Add both to the response
             data["past_showings"] = [
                 {
-                    "id": showing.id,
-                    "showtime": showing.showtime.isoformat(),
-                    "movie": MovieSerializer(showing.movie).data,
+                    "id": past_showing.id,
+                    "showtime": past_showing.showtime.isoformat(),
+                    "movie": MovieSerializer(past_showing.movie).data,
                 }
-                for showing in past_showings
+                for past_showing in past_showings
             ]
         else:
             data["past_showings"] = []
