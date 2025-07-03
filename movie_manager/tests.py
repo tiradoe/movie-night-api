@@ -9,7 +9,7 @@ from rest_framework.test import APITestCase, APIClient
 from movie_manager.models import Movie, Schedule, Showing
 
 
-class ShowingModelTestCase(APITestCase):
+class ShowingViewsetTestCase(APITestCase):
     def setUp(self):
         self.client: APIClient = APIClient()
         self.movie: Movie = Movie.objects.create(title="Test Movie")
@@ -63,7 +63,7 @@ class ShowingModelTestCase(APITestCase):
         self.assertEqual(len(parsed_schedule.get("showings")), 2)
 
 
-class ScheduleModelTestCase(APITestCase):
+class ScheduleViewsetTestCase(APITestCase):
     def setUp(self):
         self.client: APIClient = APIClient()
         self.test_user: User = User.objects.create(id=1, username="test_user")
