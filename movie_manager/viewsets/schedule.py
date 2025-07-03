@@ -1,6 +1,7 @@
 import datetime
 
 from django.http import JsonResponse
+from django.utils import timezone
 from knox.auth import TokenAuthentication
 from rest_framework import viewsets, permissions
 
@@ -23,15 +24,14 @@ class ScheduleViewset(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         # Get the schedule instance
         instance = self.get_object()
-        now = datetime.datetime.now()
+        now = timezone.now()
         # get time from start of day
-        today = datetime.datetime(now.year, now.month, now.day)
+        today = timezone.make_aware(datetime.datetime(now.year, now.month, now.day))
 
         upcoming_showings = Showing.objects.filter(
             showtime__gte=today, schedule=instance
         )
 
-        # Create a serialized response
         serializer = self.get_serializer(instance)
         data = serializer.data
 
