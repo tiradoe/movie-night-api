@@ -1,7 +1,6 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 from django.db.models import SET_NULL
-import datetime
 
 
 class Movie(models.Model):
