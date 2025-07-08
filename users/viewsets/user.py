@@ -26,10 +26,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     serializer_class = UserProfileSerializer
     lookup_field = "user__username"
 
-    @action(detail=False)
-    def current_user_profile(self, request, *args, **kwargs):
+    def retrieve(self, request, pk=None, *args, **kwargs):
         try:
-            user = request.user
+            username = kwargs.get('user__username')
+            user = User.objects.get(username=username)
         except User.DoesNotExist:
             return Response([], status=status.HTTP_404_NOT_FOUND)
 
@@ -44,10 +44,10 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
         return JsonResponse(UserProfileSerializer(user_profile).data)
 
-    def retrieve(self, request, pk=None, *args, **kwargs):
+    @action(detail=False)
+    def current_user_profile(self, request, *args, **kwargs):
         try:
-            username = kwargs.get('user__username')
-            user = User.objects.get(username=username)
+            user = request.user
         except User.DoesNotExist:
             return Response([], status=status.HTTP_404_NOT_FOUND)
 
