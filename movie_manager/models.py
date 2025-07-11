@@ -1,12 +1,11 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 from django.db.models import SET_NULL
-import datetime
 
 
 class Movie(models.Model):
     title = models.CharField(max_length=100)
-    imdb_id = models.CharField(max_length=100)
+    imdb_id = models.CharField(max_length=100, db_index=True, unique=True)
     year = models.IntegerField(null=True, blank=True)
     director = models.CharField(max_length=500, null=True, blank=True)
     actors = models.TextField(null=True, blank=True)
@@ -28,8 +27,9 @@ class Movie(models.Model):
 
 
 class MovieList(models.Model):
-    name = models.CharField(max_length=100)
-    public = models.BooleanField(default=False)
+    name = models.CharField(max_length=100, db_index=True)
+    public = models.BooleanField(default=False, db_index=True)
+    slug = models.SlugField(max_length=100, default="", db_index=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     movies = models.ManyToManyField(Movie)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -38,6 +38,9 @@ class MovieList(models.Model):
 
     class Meta:
         ordering = ["name"]
+        indexes = [
+            models.Index(fields=["public", "owner"]),
+        ]
 
     def __str__(self):
         return self.name
@@ -47,7 +50,7 @@ class Schedule(models.Model):
     name = models.CharField(max_length=100)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     public = models.BooleanField(default=False)
-    slug = models.SlugField(max_length=100, default="")
+    slug = models.SlugField(max_length=100, default="", db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
