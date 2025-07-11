@@ -29,7 +29,6 @@ class Movie(models.Model):
 class MovieList(models.Model):
     name = models.CharField(max_length=100, db_index=True)
     public = models.BooleanField(default=False, db_index=True)
-    slug = models.SlugField(max_length=100, default="", db_index=True)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     movies = models.ManyToManyField(Movie)
     created_at = models.DateTimeField(auto_now_add=True)
