@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/usr/bin/php",
+            "args": [
+                "/home/tiradoe/Projects/MovieNight/movie-night-api/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
