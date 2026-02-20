@@ -19,7 +19,7 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'username',
         'email',
         'password',
     ];
@@ -47,7 +47,8 @@ class User extends Authenticatable
         ];
     }
 
-    public function profile(): HasOne {
-       return $this->hasOne(Profile::class);
+    public function profile(): HasOne
+    {
+        return $this->hasOne(Profile::class);
     }
 }

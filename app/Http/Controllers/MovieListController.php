@@ -26,7 +26,7 @@ class MovieListController extends Controller
         $validated = $request->validated();
         $movieList = MovieList::create([
             ...$validated,
-            'owner' => 1, // auth()->id(),
+            'owner' => auth()->id(),
             'slug' => Str::slug($validated['name']),
         ]);
 

@@ -1,18 +1,26 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\MovieListController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Public auth routes
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
-// MOVIES
-Route::get('/movies/search', [MovieController::class, 'search'])->name('movies.search');
+// Authenticated routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/user', fn (Request $request) => $request->user());
 
-// MOVIE LISTS
-Route::get('/movielists/{movieList}', [MovieListController::class, 'show'])->name('movielists.show');
-Route::post('/movielists', [MovieListController::class, 'store'])->name('movielists.store');
-Route::delete('/movielists/{movieList}', [MovieListController::class, 'destroy'])->name('movielists.destroy');
+    // Movies
+    Route::get('/movies/search', [MovieController::class, 'search'])->name('movies.search');
+
+    // Movie Lists
+    Route::get('/movielists', [MovieListController::class, 'index'])->name('movielists.index');
+    Route::get('/movielists/{movieList}', [MovieListController::class, 'show'])->name('movielists.show');
+    Route::post('/movielists', [MovieListController::class, 'store'])->name('movielists.store');
+    Route::delete('/movielists/{movieList}', [MovieListController::class, 'destroy'])->name('movielists.destroy');
+});
