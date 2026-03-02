@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateMovieListRequest;
+use App\Http\Requests\UpdateMovieListRequest;
+use App\Interfaces\MovieDbInterface;
+use App\Models\Movie;
 use App\Models\MovieList;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
@@ -23,6 +26,8 @@ class MovieListController extends Controller
      */
     public function store(CreateMovieListRequest $request)
     {
+        $this->authorize('create', MovieList::class);
+
         $validated = $request->validated();
         $movieList = MovieList::create([
             ...$validated,
@@ -38,6 +43,7 @@ class MovieListController extends Controller
      */
     public function show(MovieList $movieList)
     {
+        $this->authorize('view', $movieList);
         try {
             return $movieList->load('movies');
         } catch (ModelNotFoundException $e) {
@@ -48,7 +54,7 @@ class MovieListController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, MovieList $movieList)
+    public function update(UpdateMovieListRequest $request, MovieList $movieList)
     {
         $validated = $request->validated();
         $movieList->update($validated);
@@ -61,6 +67,29 @@ class MovieListController extends Controller
      */
     public function destroy(MovieList $movieList)
     {
+        $this->authorize('delete', $movieList);
         $movieList->delete();
+    }
+
+    public function addMovie(MovieDbInterface $movieDb, Request $request, MovieList $movieList)
+    {
+        $this->authorize('update', $movieList);
+        $movieResult = $movieDb->find($request->input('movie')['imdbId'], ['type' => 'imdb']);
+        $movie = Movie::where('imdb_id', $movieResult->imdbId)->first();
+
+        $movieList->movies()->attach($movie);
+        $movieList->load('movies');
+
+        return response()->json($movieList);
+    }
+
+    public function removeMovie(MovieDbInterface $movieDb, Request $request, MovieList $movieList, Movie $movie)
+    {
+        $this->authorize('update', $movieList);
+
+        $movieList->movies()->detach($movie);
+        $movieList->load('movies');
+
+        return response()->json($movieList);
     }
 }

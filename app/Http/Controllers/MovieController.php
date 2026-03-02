@@ -56,11 +56,10 @@ class MovieController extends Controller
      * @throws MovieNotFoundException
      * @throws MovieDatabaseException
      */
-    public function search(Request $request)
+    public function search(MovieDbInterface $movieDb, Request $request, string $query)
     {
-        $searchTerm = $request->input('term');
-        $movie = $this->movieDb->search($searchTerm);
+        $movies = $movieDb->search($query, $request->input('options', []));
 
-        return response()->json(['results' => $movie]);
+        return response()->json(['results' => $movies]);
     }
 }

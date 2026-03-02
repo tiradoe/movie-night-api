@@ -82,7 +82,7 @@ class OmdbMovieService implements MovieDbInterface
             'plot' => $movieDetails->plot,
             'genre' => $movieDetails->genre,
             'mpaa_rating' => $movieDetails->mpaaRating,
-            'critic_scores' => $movieDetails->criticScores,
+            'critic_scores' => json_encode($movieDetails->criticScores),
             'poster' => $movieDetails->poster,
             'added_by' => auth()->id(),
         ]);
@@ -169,7 +169,7 @@ class OmdbMovieService implements MovieDbInterface
             'plot' => $movieDetails->plot,
             'genre' => $movieDetails->genre,
             'mpaa_rating' => $movieDetails->mpaaRating,
-            'critic_scores' => $movieDetails->criticScores,
+            'critic_scores' => json_encode($movieDetails->criticScores),
             'poster' => $movieDetails->poster,
             'added_by' => auth()->id(),
         ]);
@@ -182,9 +182,9 @@ class OmdbMovieService implements MovieDbInterface
      *
      * @throws ConnectionException If connection to OMDB fails
      */
-    public function search(string $query): Collection
+    public function search(string $query, array $options = []): Collection
     {
-        return $this->searchByTitle($query);
+        return $this->searchByTitle($query, $options);
     }
 
     /**
@@ -197,9 +197,13 @@ class OmdbMovieService implements MovieDbInterface
      * @throws MovieDatabaseException If OMDB API returns an error
      * @throws MovieNotFoundException If no movies are found
      */
-    private function searchByTitle(string $title): Collection
+    private function searchByTitle(string $title, array $options): Collection
     {
-        $searchResults = $this->makeOmdbRequest(['apikey' => $this->apiKey, 's' => $title, 'type' => 'movie']);
+        $searchResults = $this->makeOmdbRequest([
+            'apikey' => $this->apiKey, 's' => $title,
+            'type' => 'movie',
+            ...$options,
+        ]);
 
         return collect($searchResults['Search'] ?? [])
             ->map(fn ($movie) => new MovieSearchResult(

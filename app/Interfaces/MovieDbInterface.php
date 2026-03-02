@@ -19,7 +19,7 @@ interface MovieDbInterface
      * @throws MovieNotFoundException If no movies match the query
      * @throws MovieDatabaseException If the external movie database is unreachable or returns an error
      */
-    public function search(string $query): Collection;
+    public function search(string $query, array $options): Collection;
 
     /**
      * Find a specific movie by title or external ID.
