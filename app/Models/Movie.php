@@ -22,4 +22,11 @@ class Movie extends Model
         'poster',
         'added_by',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'critic_scores' => 'array',
+        ];
+    }
 }
