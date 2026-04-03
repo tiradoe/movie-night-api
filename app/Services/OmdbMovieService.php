@@ -82,7 +82,7 @@ class OmdbMovieService implements MovieDbInterface
             'plot' => $movieDetails->plot,
             'genre' => $movieDetails->genre,
             'mpaa_rating' => $movieDetails->mpaaRating,
-            'critic_scores' => json_encode($movieDetails->criticScores),
+            'critic_scores' => $movieDetails->criticScores,
             'poster' => $movieDetails->poster,
             'added_by' => auth()->id(),
         ]);
@@ -169,7 +169,7 @@ class OmdbMovieService implements MovieDbInterface
             'plot' => $movieDetails->plot,
             'genre' => $movieDetails->genre,
             'mpaa_rating' => $movieDetails->mpaaRating,
-            'critic_scores' => json_encode($movieDetails->criticScores),
+            'critic_scores' => $movieDetails->criticScores,
             'poster' => $movieDetails->poster,
             'added_by' => auth()->id(),
         ]);

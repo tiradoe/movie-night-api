@@ -18,4 +18,9 @@ class MovieList extends Model
     {
         return $this->belongsToMany(Movie::class);
     }
+
+    public function collaborators(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'movie_list_user');
+    }
 }

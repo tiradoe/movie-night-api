@@ -11,14 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('invitations', function (Blueprint $table) {
+        Schema::create('movie_list_user', function (Blueprint $table) {
             $table->id();
-            $table->string('email');
-            $table->string('token')->unique();
             $table->foreignId('movie_list_id')->constrained()->cascadeOnDelete();
-            $table->enum('status', ['pending', 'accepted_login_pending', 'accepted', 'declined'])->default('pending');
-            $table->dateTime('expires_at');
-            $table->softDeletes();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->enum('role', ['viewer', 'editor', 'admin'])->default('viewer');
+            $table->unique(['movie_list_id', 'user_id']);
             $table->timestamps();
         });
     }
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('invitations');
+        Schema::dropIfExists('movie_list_user');
     }
 };

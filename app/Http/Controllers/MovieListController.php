@@ -9,6 +9,7 @@ use App\Models\Movie;
 use App\Models\MovieList;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class MovieListController extends Controller
@@ -18,7 +19,13 @@ class MovieListController extends Controller
      */
     public function index()
     {
-        return MovieList::all();
+        $user = Auth::user();
+
+        return response()->json([
+            'movie_lists' => $user->movieLists,
+            'shared_lists' => $user->sharedLists,
+        ], 200);
+
     }
 
     /**
