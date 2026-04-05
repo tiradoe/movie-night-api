@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateMovieListRequest;
 use App\Http\Requests\UpdateMovieListRequest;
+use App\Http\Resources\MovieListResource;
 use App\Interfaces\MovieDbInterface;
 use App\Models\Movie;
 use App\Models\MovieList;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class MovieListController extends Controller
@@ -16,9 +18,15 @@ class MovieListController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        return MovieList::all();
+        $user = Auth::user();
+
+        return response()->json([
+            'movie_lists' => $user->movieLists,
+            'shared_lists' => $user->sharedLists,
+        ], 200);
+
     }
 
     /**
@@ -41,37 +49,36 @@ class MovieListController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(MovieList $movieList)
+    public function show(MovieList $movieList): MovieListResource
     {
         $this->authorize('view', $movieList);
-        try {
-            return $movieList->load('movies');
-        } catch (ModelNotFoundException $e) {
-            return response()->json(['message' => 'Movie list not found'], 404);
-        }
+
+        return MovieListResource::make($movieList->load('movies', 'collaborators'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateMovieListRequest $request, MovieList $movieList)
+    public function update(UpdateMovieListRequest $request, MovieList $movieList): MovieListResource
     {
         $validated = $request->validated();
         $movieList->update($validated);
 
-        return response()->json($movieList, 200);
+        return MovieListResource::make($movieList);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(MovieList $movieList)
+    public function destroy(MovieList $movieList): JsonResponse
     {
         $this->authorize('delete', $movieList);
         $movieList->delete();
+
+        return response()->json(['message', 'Movie list deleted successfully'], 204);
     }
 
-    public function addMovie(MovieDbInterface $movieDb, Request $request, MovieList $movieList)
+    public function addMovie(MovieDbInterface $movieDb, Request $request, MovieList $movieList): MovieListResource
     {
         $this->authorize('update', $movieList);
         $movieResult = $movieDb->find($request->input('movie')['imdbId'], ['type' => 'imdb']);
@@ -80,16 +87,16 @@ class MovieListController extends Controller
         $movieList->movies()->attach($movie);
         $movieList->load('movies');
 
-        return response()->json($movieList);
+        return MovieListResource::make($movieList);
     }
 
-    public function removeMovie(MovieDbInterface $movieDb, Request $request, MovieList $movieList, Movie $movie)
+    public function removeMovie(Request $request, MovieList $movieList, Movie $movie): MovieListResource
     {
         $this->authorize('update', $movieList);
 
         $movieList->movies()->detach($movie);
         $movieList->load('movies');
 
-        return response()->json($movieList);
+        return MovieListResource::make($movieList);
     }
 }

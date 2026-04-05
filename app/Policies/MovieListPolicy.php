@@ -22,7 +22,7 @@ class MovieListPolicy
 
     public function view(User $user, MovieList $movieList): bool
     {
-        if ($movieList->owner === $user->getKey() || $movieList->isPublic) {
+        if ($movieList->owner === $user->getKey() || $movieList->isPublic || $user->sharedLists->contains($movieList)) {
             return true;
         }
 
@@ -31,6 +31,7 @@ class MovieListPolicy
 
     public function update(User $user, MovieList $movieList): bool
     {
+
         if ($movieList->owner === $user->getKey()) {
             return true;
         }
