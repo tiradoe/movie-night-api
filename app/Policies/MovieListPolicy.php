@@ -31,6 +31,7 @@ class MovieListPolicy
 
     public function update(User $user, MovieList $movieList): bool
     {
+
         if ($movieList->owner === $user->getKey()) {
             return true;
         }

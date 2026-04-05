@@ -26,7 +26,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Movie Lists
     Route::get('/movielists', [MovieListController::class, 'index'])->name('movielists.index');
-    Route::put('/movielists/', [MovieListController::class, 'index'])->name('movielists.index');
+    Route::put('/movielists/{movieList}', [MovieListController::class, 'update'])->name('movielists.update');
     Route::get('/movielists/{movieList}', [MovieListController::class, 'show'])->name('movielists.show');
     Route::post('/movielists', [MovieListController::class, 'store'])->name('movielists.store');
     Route::post('/movielists/{movieList}/movies', [MovieListController::class, 'addMovie'])->name('movielists.addMovie');

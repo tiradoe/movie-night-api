@@ -106,7 +106,7 @@ class InvitationController extends Controller
             Mail::to($invitation->email)->queue(new ListCollaboratorInvite(Auth::user(), $invitation));
         }
 
-        return response()->json(['message' => 'Invitation created successfully'], 201);
+        return response()->json(['message' => 'Invitations sent!'], 201);
     }
 
     /**
