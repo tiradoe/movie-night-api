@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'EDITOR',
                 'display_name' => 'Editor',
-                'description' => 'Can edit list details and can add/remove movies from the list.'],
+                'description' => 'Can add/remove movies from the list.'],
             [
                 'name' => 'VIEWER',
                 'display_name' => 'Viewer',
