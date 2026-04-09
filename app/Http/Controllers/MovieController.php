@@ -10,7 +10,7 @@ use Illuminate\Http\Request;
 
 class MovieController extends Controller
 {
-    public function __construct(private MovieDbInterface $movieDb) {}
+    public function __construct() {}
 
     /**
      * Display a listing of the resource.
@@ -60,6 +60,6 @@ class MovieController extends Controller
     {
         $movies = $movieDb->search($query, $request->input('options', []));
 
-        return response()->json(['results' => $movies]);
+        return response()->json(['data' => $movies]);
     }
 }

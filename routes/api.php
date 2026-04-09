@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\MovieListController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
 
 // Public auth routes
@@ -32,4 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/movielists/{movieList}/movies', [MovieListController::class, 'addMovie'])->name('movielists.addMovie');
     Route::delete('/movielists/{movieList}/movies/{movie}', [MovieListController::class, 'removeMovie'])->name('movielists.removeMovie');
     Route::delete('/movielists/{movieList}', [MovieListController::class, 'destroy'])->name('movielists.destroy');
+    Route::patch('/movielists/{movieList}/collaborators/{collaborator}', [MovieListController::class, 'updateCollaboratorRole'])->name('movielists.updateCollaboratorRole');
+
+    // Roles
+    Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');
 });

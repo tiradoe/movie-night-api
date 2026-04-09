@@ -27,18 +27,19 @@ class MovieList extends Model
         return $this->belongsToMany(Movie::class);
     }
 
-    public function getUserRole($userId)
+    public function getUserRole($userId): string
     {
-        return $this->collaborators()
+        $roleId = $this->collaborators()
             ->where('user_id', $userId)
             ->first()
-            ?->pivot
-            ->role;
+            ?->pivot->role_id;
+
+        return Role::query()->find($roleId)?->name;
     }
 
     public function collaborators(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'movie_list_user')
-            ->withPivot('role');
+            ->withPivot('role_id');
     }
 }

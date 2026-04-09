@@ -6,6 +6,7 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\PasswordResetRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\Invitation;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -31,8 +32,13 @@ class AuthController extends Controller
             ->where('email', $user->email)
             ->get();
 
+        $viewerRole = Role::query()->where('name', 'VIEWER')->value('id');
+
         foreach ($invitations as $invitation) {
-            $user->sharedLists()->attach($invitation->movie_list_id);
+            $user->sharedLists()->attach(
+                $invitation->movie_list_id,
+                ['role_id' => $viewerRole]
+            );
             $invitation->update(['status' => 'accepted']);
             $invitation->delete();
         }
