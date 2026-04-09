@@ -8,6 +8,8 @@ use App\Http\Resources\MovieListResource;
 use App\Interfaces\MovieDbInterface;
 use App\Models\Movie;
 use App\Models\MovieList;
+use App\Models\Role;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -64,7 +66,7 @@ class MovieListController extends Controller
         $validated = $request->validated();
         $movieList->update($validated);
 
-        return MovieListResource::make($movieList);
+        return MovieListResource::make($movieList->load('movies', 'collaborators'));
     }
 
     /**
@@ -87,16 +89,34 @@ class MovieListController extends Controller
         $movieList->movies()->attach($movie);
         $movieList->load('movies');
 
-        return MovieListResource::make($movieList);
+        return MovieListResource::make($movieList->load('movies', 'collaborators'));
     }
 
-    public function removeMovie(Request $request, MovieList $movieList, Movie $movie): MovieListResource
+    public function removeMovie(MovieList $movieList, Movie $movie): MovieListResource
     {
         $this->authorize('update', $movieList);
 
         $movieList->movies()->detach($movie);
         $movieList->load('movies');
 
-        return MovieListResource::make($movieList);
+        return MovieListResource::make($movieList->load('movies', 'collaborators'));
+    }
+
+    public function updateCollaboratorRole(Request $request, MovieList $movieList, User $collaborator): MovieListResource|JsonResponse
+    {
+        $request->validate([
+            'role_id' => 'required|exists:roles,id',
+        ]);
+
+        $adminRole = Role::query()->where('name', 'ADMIN')->first()?->id;
+        if (Auth::id() !== $movieList->owner && ! Auth::user()->hasRole($movieList, $adminRole)) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $movieList->collaborators()->updateExistingPivot($collaborator->getKey(), [
+            'role_id' => $request->input('role_id'),
+        ]);
+
+        return MovieListResource::make($movieList->load('movies', 'collaborators'));
     }
 }

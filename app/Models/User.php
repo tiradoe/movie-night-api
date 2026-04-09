@@ -45,9 +45,19 @@ class User extends Authenticatable
         return $this->hasMany(MovieList::class, 'owner');
     }
 
+    public function hasRole(MovieList $movieList, int $role): bool
+    {
+        return $this->sharedLists()
+            ->wherePivot('movie_list_id', $movieList->id)
+            ->wherePivot('role_id', $role)
+            ->exists();
+    }
+
     public function sharedLists(): BelongsToMany
     {
-        return $this->belongsToMany(MovieList::class)->withPivot('role')->withTimestamps();
+        return $this->belongsToMany(MovieList::class)
+            ->withPivot('role_id')
+            ->withTimestamps();
     }
 
     /**
