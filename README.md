@@ -1,4 +1,4 @@
-## Movie Night API [WIP]
+## Movie Night API
 
 Backend API for [Movie Night](https://github.com/tiradoe/movie-night-web)
 
