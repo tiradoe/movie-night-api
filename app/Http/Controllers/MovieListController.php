@@ -8,7 +8,6 @@ use App\Http\Resources\MovieListResource;
 use App\Interfaces\MovieDbInterface;
 use App\Models\Movie;
 use App\Models\MovieList;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -34,18 +33,18 @@ class MovieListController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(CreateMovieListRequest $request)
+    public function store(CreateMovieListRequest $request): MovieListResource
     {
         $this->authorize('create', MovieList::class);
 
         $validated = $request->validated();
         $movieList = MovieList::create([
             ...$validated,
-            'owner' => auth()->id(),
+            'owner' => Auth::user()->id,
             'slug' => Str::slug($validated['name']),
         ]);
 
-        return response()->json($movieList, 201);
+        return MovieListResource::make($movieList);
     }
 
     /**
@@ -77,12 +76,13 @@ class MovieListController extends Controller
         $this->authorize('delete', $movieList);
         $movieList->delete();
 
-        return response()->json(['message', 'Movie list deleted successfully'], 204);
+        return response()->json(['message' => 'Movie list deleted successfully'], 204);
     }
 
     public function addMovie(MovieDbInterface $movieDb, Request $request, MovieList $movieList): MovieListResource
     {
-        $this->authorize('update', $movieList);
+        $this->authorize('editMovies', $movieList);
+
         $movieResult = $movieDb->find($request->input('movie')['imdbId'], ['type' => 'imdb']);
         $movie = Movie::where('imdb_id', $movieResult->imdbId)->first();
 
@@ -94,7 +94,7 @@ class MovieListController extends Controller
 
     public function removeMovie(MovieList $movieList, Movie $movie): MovieListResource
     {
-        $this->authorize('update', $movieList);
+        $this->authorize('editMovies', $movieList);
 
         $movieList->movies()->detach($movie);
         $movieList->load('movies');
@@ -104,13 +104,13 @@ class MovieListController extends Controller
 
     public function updateCollaboratorRole(Request $request, MovieList $movieList, User $collaborator): MovieListResource|JsonResponse
     {
+        $this->authorize('update', $movieList);
         $request->validate([
             'role_id' => 'required|exists:roles,id',
         ]);
 
-        $adminRole = Role::query()->where('name', 'ADMIN')->first()?->id;
-        if (Auth::id() !== $movieList->owner && ! Auth::user()->hasRole($movieList, $adminRole)) {
-            return response()->json(['message' => 'Unauthorized'], 403);
+        if (Auth::id() === $collaborator->getKey()) {
+            return response()->json(['message' => 'Cannot edit own role'], 422);
         }
 
         $movieList->collaborators()->updateExistingPivot($collaborator->getKey(), [

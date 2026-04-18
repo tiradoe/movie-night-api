@@ -15,6 +15,10 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    private static $adminRoleId = null;
+
+    private static $editorRoleId = null;
+
     /**
      * The attributes that are mass assignable.
      *
@@ -45,10 +49,33 @@ class User extends Authenticatable
         return $this->hasMany(MovieList::class, 'owner');
     }
 
-    public function hasRole(MovieList $movieList, int $role): bool
+    public function isListEditor(MovieList $movieList): bool
+    {
+        self::$editorRoleId = Role::query()
+            ->where('name', 'EDITOR')
+            ->value('id');
+
+        return $this->isListAdmin($movieList) || $this->hasRole($movieList->getKey(), self::$editorRoleId);
+    }
+
+    public function isListAdmin(MovieList $movieList): bool
+    {
+        self::$adminRoleId = Role::query()
+            ->where('name', 'ADMIN')
+            ->value('id');
+
+        return $this->isListOwner($movieList) || $this->hasRole($movieList->getKey(), self::$adminRoleId);
+    }
+
+    public function isListOwner(MovieList $movieList): bool
+    {
+        return $this->getKey() === $movieList->owner;
+    }
+
+    public function hasRole(int $movieListId, int $role): bool
     {
         return $this->sharedLists()
-            ->wherePivot('movie_list_id', $movieList->id)
+            ->wherePivot('movie_list_id', $movieListId)
             ->wherePivot('role_id', $role)
             ->exists();
     }
@@ -56,6 +83,13 @@ class User extends Authenticatable
     public function sharedLists(): BelongsToMany
     {
         return $this->belongsToMany(MovieList::class)
+            ->withPivot('role_id')
+            ->withTimestamps();
+    }
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'movie_list_user')
             ->withPivot('role_id')
             ->withTimestamps();
     }

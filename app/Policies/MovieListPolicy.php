@@ -22,29 +22,23 @@ class MovieListPolicy
 
     public function view(User $user, MovieList $movieList): bool
     {
-        if ($movieList->owner === $user->getKey() || $movieList->isPublic || $user->sharedLists->contains($movieList)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public function update(User $user, MovieList $movieList): bool
-    {
-
-        if ($movieList->owner === $user->getKey()) {
-            return true;
-        }
-
-        return false;
+        return $movieList->is_public
+            || $user->isListOwner($movieList)
+            || $user->sharedLists->contains($movieList);
     }
 
     public function delete(User $user, MovieList $movieList): bool
     {
-        if ($movieList->owner === $user->getKey()) {
-            return true;
-        }
+        return $user->isListOwner($movieList);
+    }
 
-        return false;
+    public function editMovies(User $user, MovieList $movieList): bool
+    {
+        return $user->isListEditor($movieList);
+    }
+
+    public function update(User $user, MovieList $movieList): bool
+    {
+        return $user->isListAdmin($movieList);
     }
 }

@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Route;
 // Public auth routes
 Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
-Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('auth.reset-password');
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('auth.forgot-password');
 Route::get('/invitations/{token}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
 Route::get('/invitations/{token}/decline', [InvitationController::class, 'decline'])->name('invitations.decline');
@@ -18,6 +17,7 @@ Route::get('/invitations/{token}/decline', [InvitationController::class, 'declin
 // Authenticated routes
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('auth.logout');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('auth.reset-password');
 
     // Invitations
     Route::post('/invitations', [InvitationController::class, 'store'])->name('invitations.store');

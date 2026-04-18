@@ -27,7 +27,7 @@ class MovieList extends Model
         return $this->belongsToMany(Movie::class);
     }
 
-    public function getUserRole($userId): string
+    public function getUserRole($userId): ?string
     {
         $roleId = $this->collaborators()
             ->where('user_id', $userId)
