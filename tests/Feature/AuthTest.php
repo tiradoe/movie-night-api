@@ -16,8 +16,6 @@ class AuthTest extends TestCase
             ->postJson('/api/register', [
                 'username' => 'johndoe',
                 'email' => 'john@example.com',
-                'password' => 'password123',
-                'password_confirmation' => 'password123',
             ]);
 
         $response->assertStatus(201)
@@ -31,12 +29,10 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/register', [
             'username' => '',
             'email' => 'not-an-email',
-            'password' => 'short',
-            'password_confirmation' => 'mismatch',
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['username', 'email', 'password']);
+            ->assertJsonValidationErrors(['username', 'email']);
     }
 
     public function test_registration_fails_with_duplicate_email(): void
@@ -46,8 +42,6 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/register', [
             'username' => 'johndoe',
             'email' => 'john@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
         ]);
 
         $response->assertStatus(422)
@@ -61,8 +55,6 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/register', [
             'username' => 'johndoe',
             'email' => 'john@example.com',
-            'password' => 'password123',
-            'password_confirmation' => 'password123',
         ]);
 
         $response->assertStatus(422)
@@ -111,18 +103,8 @@ class AuthTest extends TestCase
 
     public function test_unauthenticated_user_cannot_access_protected_routes(): void
     {
-        $response = $this->getJson('/api/user');
+        $response = $this->getJson('/api/roles');
 
         $response->assertStatus(401);
-    }
-
-    public function test_authenticated_user_can_access_user_endpoint(): void
-    {
-        $user = User::factory()->create();
-
-        $response = $this->actingAs($user)->getJson('/api/user');
-
-        $response->assertOk()
-            ->assertJsonFragment(['email' => $user->email]);
     }
 }

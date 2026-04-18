@@ -14,27 +14,10 @@ class UpdateCollaboratorRoleTest extends TestCase
     use RefreshDatabase;
 
     private Role $adminRole;
+
     private Role $editorRole;
+
     private Role $viewerRole;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-        $this->seed(DatabaseSeeder::class);
-
-        $this->adminRole = Role::where('name', 'ADMIN')->first();
-        $this->editorRole = Role::where('name', 'EDITOR')->first();
-        $this->viewerRole = Role::where('name', 'VIEWER')->first();
-    }
-
-    private function makeList(User $owner): MovieList
-    {
-        return MovieList::create([
-            'name' => 'Test List',
-            'owner' => $owner->getKey(),
-            'slug' => 'test-list',
-        ]);
-    }
 
     public function test_role_id_is_required(): void
     {
@@ -48,6 +31,15 @@ class UpdateCollaboratorRoleTest extends TestCase
 
         $response->assertUnprocessable()
             ->assertJsonValidationErrors(['role_id']);
+    }
+
+    private function makeList(User $owner): MovieList
+    {
+        return MovieList::create([
+            'name' => 'Test List',
+            'owner' => $owner->getKey(),
+            'slug' => 'test-list',
+        ]);
     }
 
     public function test_role_id_must_exist_in_roles_table(): void
@@ -125,6 +117,26 @@ class UpdateCollaboratorRoleTest extends TestCase
         $response->assertForbidden();
     }
 
+    public function test_admin_collaborator_cannot_update_own_role(): void
+    {
+        $owner = User::factory()->create();
+        $admin = User::factory()->create();
+        $movieList = $this->makeList($owner);
+        $movieList->collaborators()->attach($admin, ['role_id' => $this->adminRole->getKey()]);
+
+        $response = $this->actingAs($admin)
+            ->patchJson("/api/movielists/{$movieList->getKey()}/collaborators/{$admin->getKey()}", [
+                'role_id' => $this->editorRole->getKey(),
+            ]);
+
+        $response->assertUnprocessable();
+        $this->assertDatabaseHas('movie_list_user', [
+            'movie_list_id' => $movieList->getKey(),
+            'user_id' => $admin->getKey(),
+            'role_id' => $this->adminRole->getKey(),
+        ]);
+    }
+
     public function test_unrelated_user_cannot_update_collaborator_role(): void
     {
         $owner = User::factory()->create();
@@ -139,5 +151,15 @@ class UpdateCollaboratorRoleTest extends TestCase
             ]);
 
         $response->assertForbidden();
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->seed(DatabaseSeeder::class);
+
+        $this->adminRole = Role::where('name', 'ADMIN')->first();
+        $this->editorRole = Role::where('name', 'EDITOR')->first();
+        $this->viewerRole = Role::where('name', 'VIEWER')->first();
     }
 }
