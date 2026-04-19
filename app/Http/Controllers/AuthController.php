@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\PasswordResetRequest;
+use App\Http\Requests\PasswordResetWithTokenRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\Invitation;
 use App\Models\Role;
@@ -11,6 +12,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
@@ -54,6 +56,24 @@ class AuthController extends Controller
     }
 
     public function resetPassword(PasswordResetRequest $request)
+    {
+        $user = Auth::user();
+        $validatedData = $request->validated();
+
+        if (! Hash::check($request->current_password, $user->password)) {
+            return response()->json(['message' => 'Current password is incorrect.'], 422);
+        }
+
+        try {
+            $user->forceFill(['password' => $validatedData['password']])->save();
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Password reset failed.'], 400);
+        }
+
+        return response()->json(['message' => 'Password reset successful.']);
+    }
+
+    public function resetPasswordWithToken(PasswordResetWithTokenRequest $request)
     {
         $updatedUser = null;
 
