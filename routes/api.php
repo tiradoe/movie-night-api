@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])->name('auth.forgot-password');
+Route::post('/reset-password-token', [AuthController::class, 'resetPasswordWithToken'])->name('auth.reset-password-with-token');
 Route::get('/invitations/{token}/accept', [InvitationController::class, 'accept'])->name('invitations.accept');
 Route::get('/invitations/{token}/decline', [InvitationController::class, 'decline'])->name('invitations.decline');
 
