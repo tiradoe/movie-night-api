@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
-class django_import extends Command
+class DjangoImport extends Command
 {
     /**
      * The name and signature of the console command.
